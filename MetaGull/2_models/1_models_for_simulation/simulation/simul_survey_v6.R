@@ -29,7 +29,10 @@ for (t in 1:(n.years-1)) {
 }
 
 
-
+# Ajout de NA
+B[4,5] = NA
+B[3,6] = NA
+B[4,6] = NA
 
 
 library(ggplot2)
@@ -62,7 +65,7 @@ p2 = ggplot(df, aes(x = Temps, y = Valeur, color = Population)) +
        y = "Nombre d'individus") +
   theme_minimal()
 
-p2
+# p2
 
 
 

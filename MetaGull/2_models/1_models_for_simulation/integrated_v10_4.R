@@ -16,9 +16,6 @@ library(tidyverse)
 load(file = "simulated_dataset_v10_3/B.Rda")
 load(file = "simulated_dataset_v10_3/marr.Rda")
 
-source("simulation/simul_cmr_v6_2.R")
-
-
 # Ajout de NA
 # B[4,5] = NA
 # B[3,6] = NA

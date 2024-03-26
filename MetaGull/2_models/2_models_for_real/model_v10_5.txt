@@ -156,7 +156,7 @@ model {
   }
   # Non-Surveyed colonies
   for (k in 1:nrow_no_detection_index) {
-    po[no_detection_index[k, 1] ,no_detection_index[k, 2]] ~ dunif(0, 1) # <-  0
+    po[no_detection_index[k, 1] ,no_detection_index[k, 2]]  <-  0 #   ~ dunif(0, 1) #
   }
 
 

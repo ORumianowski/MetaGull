@@ -1,6 +1,9 @@
 
-#setwd("C:/Users/33763/Documents/CMRi/0_Github/Metapopulation-dynamics-following-a-major-disturbance---Master-s-thesis/1_Modélisation/1_IPM/6_IPM_on_real_dataset")
+setwd("C:/Users/33763/Documents/CMRi/0_Github/MetaGull/MetaGull")
 
+#C:\Users\33763\Documents\CMRi\0_Github\MetaGull\MetaGull\1_formatage\real_dataset
+
+#/2_models/2_models_for_real
 
 # library(IPMbook)
 library(jagsUI)
@@ -11,8 +14,8 @@ library(tidyverse)
 # load(file = "/lustre/rumianowskio/real_dataset/B.Rda")
 # load(file = "/lustre/rumianowskio/real_dataset/marr.Rda")
 
-load(file = "real_dataset_v3/B.Rda")
-load(file = "real_dataset_v3/marr_reel.Rda")
+load(file = "1_formatage/real_dataset/v4/B.Rda")
+load(file = "1_formatage/real_dataset/v4/marr_reel.Rda")
 marr = marr_reel
 
 # load(file = "real_dataset/CH_real.Rda")
@@ -100,11 +103,10 @@ marr_index_with_cmr = setdiff(1:((n.years-1)*ns), index_no_cmr)
 
 # Detection effort
 
-load(file = "read_effort_v1/reading_effort.Rda")
+load(file = "1_formatage/reading_effort/reading_effort.Rda")
 
 detection = ifelse(is.na(reading_effort), 0, 1)
-
-detection = detection[, 2:ncol(detection)] # pas de détection la premiere année
+detection = detection[,2:ncol(detection)] # no detection on first year
 
 detection_index = which(detection == 1, arr.ind = TRUE) %>% as.data.frame()
 detection_index[,1] = detection_index[,1] + n.colony
@@ -154,7 +156,7 @@ jags.data <- list(C=survey_data,
 
 
 # Write JAGS model file
-cat(file = "model_v10_5.txt", "
+cat(file = "model_v10_6.txt", "
 model {
  # -------------------------------------------------
   # Stages:
@@ -312,7 +314,7 @@ model {
   }
   # Non-Surveyed colonies
   for (k in 1:nrow_no_detection_index) {
-    po[no_detection_index[k, 1] ,no_detection_index[k, 2]] ~ dunif(0, 1) # <-  0
+    po[no_detection_index[k, 1] ,no_detection_index[k, 2]]  <-  0 
   }
 
 
@@ -398,11 +400,11 @@ ni <- 50000; nb <- 10000; nc <- 3; nt <- 60; na <- 4000
 
 
 # Call JAGS from R and check convergence
-out1 <- jags(jags.data, inits, parameters, "model_v10_5.txt",
+out1 <- jags(jags.data, inits, parameters, "2_models/2_models_for_real/model_v10_6.txt",
              n.iter=ni, n.burnin=nb, n.chains=nc, n.thin=nt, n.adapt=na,
              parallel=TRUE)
 
-save(out1, file = "/lustre/rumianowskio/out1_integrated_v10_5_cmr_real.Rda")
+save(out1, file = "/lustre/rumianowskio/out1_integrated_v10_6_real.Rda")
 
 
 

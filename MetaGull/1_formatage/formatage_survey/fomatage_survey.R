@@ -15,8 +15,10 @@ survey = survey %>%
 
 survey_with_cmr = survey %>% 
   subset(.,site %in% c("LR_E", "MA_E", "PC_E", "V5_E")) %>%
-  pivot_wider(names_from = year, values_from = N) %>% 
-  slice(c(1, 3, 2, 4)) %>% # Obtnir l'ordre : LR, PC, MA, V5
+  pivot_wider(names_from = year, values_from = N)
+
+survey_with_cmr = survey_with_cmr %>% 
+  slice(c(1, 3, 2, 4)) %>% # Obtenir l'ordre : 1-LR, 2-PC, 3-MA, 4-V5  (le même que celui de la CMR)
   select(-1)
 
 alive_elsewhere = survey %>% 
@@ -28,7 +30,10 @@ alive_elsewhere = survey %>%
 B = rbind(survey_with_cmr, alive_elsewhere) %>% 
   as.matrix()
 
-B[1,] = c(7145, 8059, 5585, 7893, 8487, 10428, 10877, 7310, 5882, 6027, 6584, 8499, 9225, 6639, 7000, 7000, 7000, 7000, 7000, 7000)
+# Nombre de couple issu de la thèse de V.GROBOIS
+B[1,] = c(7145, 8059, 5585, 7893, 8487, 10428, 10877, 7310, 5882, 6027, 6584, 8499, 9225, 6639, 7000, 7000, 7000, 7000, 7000, 7000)%/%2
+
+# Année d'inction issu de Péron
 B[2, c(9, 19:20)] = 0
 B[3, c(7, 17)] = 0
 B[4, c(1:5, 7:10, 16:20)] = 0
