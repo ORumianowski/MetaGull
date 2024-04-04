@@ -1,5 +1,5 @@
 
-source("simulation/model_parameters_v6.R")
+source("simulation/model_parameters_v9.R")
 
 
 #  Simulate survey dataset ------------------------------------------------

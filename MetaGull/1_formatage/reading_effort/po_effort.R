@@ -1,10 +1,10 @@
 
 
-setwd("C:/Users/33763/Documents/CMRi/0_Github/MetaGull/MetaGull/1_formatage/comparaison_CH_real_vs_simulation")
+setwd("C:/Users/33763/Documents/CMRi/0_Github/MetaGull/MetaGull")
 
 library(tidyverse)
 
-load(file = "CH.Rda")
+load(file = "1_formatage/formatage_cmr/v1/CH.Rda")
 
 n.colony = 5
 n.years = ncol(CH)

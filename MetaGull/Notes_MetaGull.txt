@@ -1,0 +1,20 @@
+SIMULATION
+
+faire tourner le dernier bon simulation
+
+le même avec la 5e ligne etanel moyenne des colonne
+
+
+REEL
+
+faire tourner le m^me real avec plus d iteration
+DONE
+avec la productivité fixé 2
+avec N[1] plus souple 3 
+avec la 5e ligne contrainte comme simul 4 
+avec le fidelité ae FIXé 5
+avec le fidelité ae FIXé avec contrainte 6
+
+NOT DONE
+avec la survie fixé BUG
+

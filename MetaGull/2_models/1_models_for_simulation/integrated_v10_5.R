@@ -1,21 +1,30 @@
-setwd("C:/Users/33763/Documents/CMRi/0_Github/MetaGull/MetaGull")
 
+
+#library(IPMbook)
 library(jagsUI)
 library(tidyverse)
 
 # Dataset -----------------------------------------------------------------
 
-# load(file = "/lustre/rumianowskio/simulated_dataset_v10_3/B.Rda")
-# load(file = "/lustre/rumianowskio/simulated_dataset_v10_3/marr.Rda")
+load(file = "/lustre/rumianowskio/simulated_dataset_v11/B.Rda")
+load(file = "/lustre/rumianowskio/simulated_dataset_v11/marr.Rda")
 
-load(file = "2_models/1_models_for_simulation/simulated_dataset/B.Rda")
-load(file = "2_models/1_models_for_simulation/simulated_dataset/marr.Rda")
+# load(file = "simulated_dataset_v11/B.Rda")
+# load(file = "simulated_dataset_v11/marr.Rda")
+
+# Ajout de NA
+# B[4,5] = NA
+# B[3,6] = NA
+# B[4,6] = NA
+
 
 # Bundle data  ------------------------------------------------------------
 
 n.age.class = 3 # number of age classes in this model
 survey_data = B # Survey dataset - Number of breeders reported
-
+#y = rbind(y, c(rep(0, time = ncol(y)-1), 5)) # one virtual nestling ringed in colony 5 at last occasion
+#marr = marray(y, unobs=n.colony+1) # convert capture history to marray # unobserved states: 10 and 11 to 15
+# save(marr, file = "marr.Rda")
 rel = rowSums(marr) # number of released birds at each occasions
 
 n.colony = nrow(survey_data) # number of colonies in this survey
@@ -32,7 +41,14 @@ state2col = rep(1:n.colony, time = n.age.class) # correspondence from state to c
 state2colclass = rep(col2colclass, n.age.class) # correspondence from state to colony type i.e. La Ronze ou satellite colony
 state2ageclass = rep(1:n.age.class, each = n.colony) # correspondence from state to age class 
 
-# Numbers of prebreeders and breeders for the priors, the first year
+# For informative prior 
+#real_phi = phi
+#real_rho = rho
+#real_kappa = kappa
+#real_eta = eta
+#real_nu = nu
+
+# We determine the numbers of prebreeders and breeders for the priors, the first year
 
 repro_ratio = c(0.34/0.66, rep(0.14/0.86,n.colony-1))  
 
@@ -46,7 +62,8 @@ pop_init = data.frame(estim = B[,1]) %>%
 
 # Extinction
 # Where and when are no reproduction ?
-# ABSENCE contains the combinations of colonies and date when reproduction not occurred - 0 pairs
+# PRESENCE contains the combination of colonies and date when reproduction occurred.
+# ABSENCE contains the combinations  when reproduction not occurred - 0 pairs
 
 # Extincted
 E = ifelse(survey_data == 0, 0, 1) %>%
@@ -94,7 +111,7 @@ jags.data <- list(C=survey_data,
 
 
 # Write JAGS model file
-cat(file = "2_models/1_models_for_simulation/model_v10_5.txt", "
+cat(file = "model_v10_5.txt", "
 model {
  # -------------------------------------------------
   # Stages:
@@ -124,15 +141,26 @@ model {
   # eta_ext depends partly on time. It is set to eta by default and updated in the event of extinction
   # eta_t is the normalized and updated version of eta - This is the one used in the process equation.
   
-  for (dep in 1:n.colony){
+  for (dep in 1:(n.colony-1)){
     for (arr in 1:n.colony){
       eta[dep, arr]  ~ dunif(0, 1)   # natal dispersal
+
+    }
+  }
+  
+  eta[5, 1] <- (eta[2, 1] + eta[3, 1] + eta[4, 1])/3 
+  eta[5, 2] <- (eta[1, 2] + eta[3, 2] + eta[4, 2])/3  
+  eta[5, 3] <- (eta[1, 3] + eta[2, 3] + eta[4, 3])/3 
+  eta[5, 4] <- (eta[1, 4] + eta[2, 4] + eta[3, 4])/3 
+  eta[5, 5] ~ dunif(0, 1) 
+  
+  for (dep in 1:n.colony){
+    for (arr in 1:n.colony){
       nu[dep, arr]  ~ dunif(0, 1)    # breeding dispersal
       eta_monitored[dep, arr] <- (eta[dep, arr] / sum(eta[dep,])) 
       nu_monitored[dep, arr] <- (nu[dep, arr] / sum(nu[dep,])) 
     }
   }
-  
 
   
   for (t in 1:(n.years-1)){
@@ -328,7 +356,7 @@ ni <- 50000; nb <- 10000; nc <- 3; nt <- 70; na <- 4000
 
 
 # Call JAGS from R and check convergence
-out1 <- jags(jags.data, inits, parameters, "2_models/1_models_for_simulation/model_v10_5.txt",
+out1 <- jags(jags.data, inits, parameters, "model_v10_5.txt",
              n.iter=ni, n.burnin=nb, n.chains=nc, n.thin=nt, n.adapt=na,
              parallel=TRUE)
 

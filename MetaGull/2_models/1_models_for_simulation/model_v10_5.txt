@@ -28,15 +28,26 @@ model {
   # eta_ext depends partly on time. It is set to eta by default and updated in the event of extinction
   # eta_t is the normalized and updated version of eta - This is the one used in the process equation.
   
-  for (dep in 1:n.colony){
+  for (dep in 1:(n.colony-1)){
     for (arr in 1:n.colony){
       eta[dep, arr]  ~ dunif(0, 1)   # natal dispersal
+
+    }
+  }
+  
+  eta[5, 1] <- (eta[2, 1] + eta[3, 1] + eta[4, 1])/3 
+  eta[5, 2] <- (eta[1, 2] + eta[3, 2] + eta[4, 2])/3  
+  eta[5, 3] <- (eta[1, 3] + eta[2, 3] + eta[4, 3])/3 
+  eta[5, 4] <- (eta[1, 4] + eta[2, 4] + eta[3, 4])/3 
+  eta[5, 5] ~ dunif(0, 1) 
+  
+  for (dep in 1:n.colony){
+    for (arr in 1:n.colony){
       nu[dep, arr]  ~ dunif(0, 1)    # breeding dispersal
       eta_monitored[dep, arr] <- (eta[dep, arr] / sum(eta[dep,])) 
       nu_monitored[dep, arr] <- (nu[dep, arr] / sum(nu[dep,])) 
     }
   }
-  
 
   
   for (t in 1:(n.years-1)){
