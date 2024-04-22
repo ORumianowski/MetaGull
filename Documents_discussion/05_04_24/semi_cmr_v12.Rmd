@@ -1,0 +1,232 @@
+---
+title: "Metapopulation model"
+author: "Odin Rumianowski"
+date: "2024-03-22"
+output :
+  html_document :
+    toc : yes
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(MCMCvis)
+library(knitr)
+library(patchwork)
+library(hrbrthemes)
+```
+
+
+# Computational parameters
+
+```{r}
+comput_param = data.frame(ni=50000,
+                          nb=10000,
+                          nc=3,
+                          nt=40,
+                          na=4000)
+colnames(comput_param)= c("Iterations", "Burning", "Nb. chains", "Thining", "Adaptative phase")
+
+kable(comput_param)
+
+```
+
+
+
+
+
+```{r}
+#load(file = "out1_integrated_v10_4.Rda")
+load(file = "out1_semi_cmr_AE_v12.txt.Rda")
+```
+
+
+```{r}
+estimates = c("Number of female fledging per pair in LR", "Number of female fledging per pair in small colonies",
+              "Survival of adults", "Survival during the first year",
+              "Breeding fidelity in LR", "Breeding fidelity in MA" , "Breeding fidelity in VE",
+              "Breeding fidelity in V5", "Breeding fidelity in AE",
+              "Natal fidelity in LR", "Natal fidelity in MA" , "Natal fidelity in VE",
+              "Natal fidelity in V5", "Natal fidelity in AE",
+              "Rate of accession to reproduction in LR", "Rate of accession to reproduction in small colonies"
+              )
+```
+
+
+```{r}
+cmr_peron = c(NA, NA, 0.828,0.273,0.830, 0.662, 0.803, 0.537, 0.954, 0.320, 0.429, 0.695, 0.713, 0.591, 0.716, 0.827)
+integrated_peron = c(1.732, 0.605, 0.860, 0.213, 1, 0.626, 0.469, 0.373, 0.938, 0.392, 0.454, 0.722, 0.784, 0.301, 0.619, 0.846)
+```
+
+```{r}
+my_cmr = c(NA, NA, out1$mean$phi[2], out1$mean$phi[1], out1$mean$breedingfidelity, out1$mean$natalfidelity, out1$mean$kappa) %>% round(., 3)
+```
+
+
+# Main parameters
+
+```{r}
+main_parameters = data.frame(cbind(estimates, cmr_peron, my_cmr,integrated_peron))
+```
+
+
+```{r}
+kable(main_parameters)
+```
+
+## Dispersion
+### Natal dispersion 
+
+```{r}
+
+col_dep = c("From LR", "From MA", "From VE", "From V5", "From AE")
+col_arr = c(" ", "To LR", "To MA", "To VE", "To V5", "To AE")
+
+```
+
+```{r}
+eta = out1$mean$eta_monitored %>% round(., 2)
+
+eta = cbind(col_dep, eta)
+eta = rbind(col_arr, eta)
+
+```
+
+
+```{r}
+kable(eta, align = "c")
+```
+
+### Breeding dispersion
+
+```{r}
+nu = out1$mean$nu_monitored %>% round(., 2)
+
+nu = cbind(col_dep, nu)
+nu = rbind(col_arr, nu)
+
+```
+
+
+```{r}
+
+kable(nu, align = "c")
+```
+
+## Recapture probability
+           
+In the analysis:
+
+```{r}
+p1 = out1$mean$po[6,] %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram() +
+  labs(title = "La Ronze")
+
+
+p2 = out1$mean$po[7:9,] %>% 
+  as.vector() %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram()+
+  labs(title = "Les satellites")
+
+p3 = p1 + p2
+
+p3
+
+```
+
+
+```{r}
+
+x = paste0("", seq(1,19))
+y = c("LR", "MA", "VE", "V5")
+data <- expand.grid(Year=x, Colony=y)
+data$p <- out1$mean$po[6:9,] %>% 
+  as.data.frame() %>% 
+  t() %>% 
+  as.vector()
+
+ggplot(data, aes(Year, Colony, fill= p)) + 
+  geom_tile() +
+  geom_text(aes(label = round(p, 1))) +
+  scale_fill_gradient(low="white", high="blue") +
+  hrbrthemes::theme_ipsum	()
+
+```
+
+# Traces
+## Apparent survival probability
+
+
+```{r}
+PR_unif_01 <- runif(1E9, 0, 1)
+```
+
+
+```{r}
+gvals = c(0.213, 0.860)
+
+MCMCtrace(out1, params = c("phi"),
+          Rhat = T,
+          priors = PR_unif_01,
+          gvals = gvals,
+          ind = T, pdf = F,
+          post_zm = F)
+
+```
+
+
+
+## Recruitment probability
+
+```{r}
+
+
+gvals = c(0.619, 0.846)
+
+MCMCtrace(out1, params = c("kappa"),
+          Rhat = TRUE,
+          priors = PR_unif_01,
+          gvals = gvals,
+          ind = TRUE, pdf = FALSE,
+          post_zm = F)
+
+
+```
+
+
+## Dispersion
+
+### Traces of eta
+
+```{r} 
+
+MCMCtrace(out1, params = c("eta_monitored"),
+          Rhat = TRUE,
+          #priors = PR_unif_01,
+          ind = TRUE, pdf = FALSE,
+          post_zm = F)
+
+
+```
+
+### Traces of nu
+
+```{r} 
+
+MCMCtrace(out1, params = c("nu_monitored"),
+          Rhat = TRUE,
+          #priors = PR_unif_01,
+          ind = TRUE, pdf = FALSE,
+          post_zm = F)
+```

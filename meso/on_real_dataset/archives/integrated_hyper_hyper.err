@@ -1,0 +1,4 @@
+WARNING: Cache disabled - cache location /home/rumianowskio is not writable.
+Error in setwd("C:/Users/33763/Documents/CMRi/0_Github/MetaGull/MetaGull") : 
+  cannot change working directory
+Execution halted

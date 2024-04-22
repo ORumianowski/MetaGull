@@ -122,7 +122,7 @@ jags.data <- list(C=survey_data,
 
 
 # Write JAGS model file
-cat(file = "2_models/2_models_for_real/v14/models/integrated_v14.txt", "
+cat(file = "2_models/2_models_for_real/v14/models/integrated_v14_diriclet.txt", "
 model {
  # -------------------------------------------------
   # Stages:
@@ -376,7 +376,7 @@ ni <- 50000; nb <- 15000; nc <- 3; nt <- 20; na <- 5000
 
 
 # Call JAGS from R and check convergence
-out1 <- jags(jags.data, inits, parameters, "2_models/2_models_for_real/v14/models/integrated_v14.txt",
+out1 <- jags(jags.data, inits, parameters, "2_models/2_models_for_real/v14/models/integrated_v14_diriclet.txt",
              n.iter=ni, n.burnin=nb, n.chains=nc, n.thin=nt, n.adapt=na,
              parallel=TRUE)
 

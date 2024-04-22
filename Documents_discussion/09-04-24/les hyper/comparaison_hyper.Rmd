@@ -1,0 +1,224 @@
+---
+title: "Metapopulation model"
+author: "Odin Rumianowski"
+date: "2024-03-22"
+output :
+  html_document :
+    toc : yes
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(MCMCvis)
+library(knitr)
+library(patchwork)
+library(hrbrthemes)
+```
+
+```{r}
+load(file = "out1_semi_cmr_AE_v12.txt.Rda")
+out_0 = out1
+load(file = "v12_prior_p_hyper.Rda")
+out_1 = out1
+load(file = "v12_prior_p_hyper2.Rda")
+out_2 = out1
+load(file = "out1_cmr_hyper_AE2.Rda")
+out_3 = out1
+```
+
+# Recapture probability
+## Recapture probability Distribution - 3 models
+
+```{r}
+
+
+dt_p_0 <- out_0$mean$po[6:9,] %>%
+  t() %>%
+  as.data.frame() %>%
+  setNames(c("LR", "MA", "VE", "V5")) %>%
+  mutate(year = 1:nrow(.)) %>%
+  mutate(dataset = rep("0-Base", nrow(.))) %>%
+  pivot_longer(cols = -c(year, dataset), 
+               names_to = "Type",
+               values_to = "Valeur")
+
+dt_p_1 <- out_1$mean$po[6:9,] %>%
+  t() %>%
+  as.data.frame() %>%
+  setNames(c("LR", "MA", "VE", "V5")) %>%
+  mutate(year = 1:nrow(.)) %>%
+  mutate(dataset = rep("1-Hyper-Informatif", nrow(.))) %>%
+  pivot_longer(cols = -c(year, dataset), 
+               names_to = "Type",
+               values_to = "Valeur")
+
+
+dt_p_2 <- out_2$mean$po[6:9,] %>%
+  t() %>%
+  as.data.frame() %>%
+  setNames(c("LR", "MA", "VE", "V5")) %>%
+  mutate(year = 1:nrow(.)) %>%
+  mutate(dataset = rep("2-Hyper-Non-informatif", nrow(.))) %>%
+  pivot_longer(cols = -c(year, dataset), 
+               names_to = "Type",
+               values_to = "Valeur")
+
+
+dt_p_3 <- out_3$mean$po[6:9,] %>%
+  t() %>%
+  as.data.frame() %>%
+  setNames(c("LR", "MA", "VE", "V5")) %>%
+  mutate(year = 1:nrow(.)) %>%
+  mutate(dataset = rep("3-Hyper&AEfixé", nrow(.))) %>%
+  pivot_longer(cols = -c(year, dataset), 
+               names_to = "Type",
+               values_to = "Valeur")
+
+dt_p = rbind(dt_p_0, dt_p_1, dt_p_2, dt_p_3) %>% 
+  subset(., Valeur != 0)
+
+p = ggplot(dt_p, aes(x = Type, y = Valeur, fill = dataset, color = dataset)) + 
+  geom_boxplot(alpha = 0.5) +
+  geom_jitter(position = position_jitterdodge())+ 
+  geom_hline(yintercept = 0.3, linetype = "dashed")+
+  geom_hline(yintercept = 0.7, linetype = "dashed")
+
+p
+
+```
+
+# Convergence individuelle des p
+
+## De base
+
+
+```{r}
+MCMCtrace(out_0, params = c("po[6,1]", "po[6,2]", "po[6,3]", "po[6,4]", "po[6,5]", "po[6,6]", "po[6,7]",
+                            "po[6,8]", "po[6,9]", "po[6,10]", "po[6,11]", "po[6,12]", "po[6,13]", "po[6,14]",
+                            "po[6,15]", "po[6,16]", "po[6,17]", "po[6,18]", "po[6,19]",
+                            
+                            "po[7,1]", "po[7,2]", "po[7,3]", "po[7,4]", "po[7,5]", "po[7,6]", "po[7,7]",
+                            "po[7,8]", "po[7,9]", "po[7,10]", "po[7,11]", "po[7,12]", "po[7,13]", "po[7,14]",
+                            "po[7,15]", "po[7,16]", "po[7,17]", "po[7,18]", "po[7,19]",
+                            
+                            "po[8,1]", "po[8,2]", "po[8,3]", "po[8,4]", "po[8,5]", "po[8,6]", "po[8,7]",
+                            "po[8,8]", "po[8,9]", "po[8,10]", "po[8,11]", "po[8,12]", "po[8,13]", "po[8,14]",
+                            "po[8,15]", "po[8,16]", "po[8,17]", "po[8,18]", "po[8,19]",
+                            
+                            "po[9,1]", "po[9,2]", "po[9,3]", "po[9,4]", "po[9,5]", "po[9,6]", "po[9,7]",
+                            "po[9,8]", "po[9,9]", "po[9,10]", "po[9,11]", "po[9,12]", "po[9,13]", "po[9,14]",
+                            "po[9,15]", "po[9,16]", "po[9,17]", "po[9,18]", "po[9,19]"
+                            
+                            
+                            ),
+          Rhat = TRUE,
+          ISB = FALSE,
+          ind = TRUE, pdf = FALSE)
+
+```
+
+
+
+## Hyperparametres cadrés
+### Mean and SD
+
+```{r}
+MCMCtrace(out_1, params = c("mean_p_LR","mean_p_MA","mean_p_VE","mean_p_V5",
+                            "sigma_p_LR", "sigma_p_MA", "sigma_p_VE", "sigma_p_V5"
+                            ),
+          Rhat = TRUE,
+          ISB = FALSE,
+          ind = TRUE, pdf = FALSE)
+
+```
+
+
+### Convergence des p
+
+
+
+```{r}
+MCMCtrace(out_1, params = c("po[6,1]", "po[6,2]", "po[6,3]", "po[6,4]", "po[6,5]", "po[6,6]", "po[6,7]",
+                            "po[6,8]", "po[6,9]", "po[6,10]", "po[6,11]", "po[6,12]", "po[6,13]", "po[6,14]",
+                            "po[6,15]", "po[6,16]", "po[6,17]", "po[6,18]", "po[6,19]",
+                            
+                            "po[7,1]", "po[7,2]", "po[7,3]", "po[7,4]", "po[7,5]", "po[7,6]", "po[7,7]",
+                            "po[7,8]", "po[7,9]", "po[7,10]", "po[7,11]", "po[7,12]", "po[7,13]", "po[7,14]",
+                            "po[7,15]", "po[7,16]", "po[7,17]", "po[7,18]", "po[7,19]",
+                            
+                            "po[8,1]", "po[8,2]", "po[8,3]", "po[8,4]", "po[8,5]", "po[8,6]", "po[8,7]",
+                            "po[8,8]", "po[8,9]", "po[8,10]", "po[8,11]", "po[8,12]", "po[8,13]", "po[8,14]",
+                            "po[8,15]", "po[8,16]", "po[8,17]", "po[8,18]", "po[8,19]",
+                            
+                            "po[9,1]", "po[9,2]", "po[9,3]", "po[9,4]", "po[9,5]", "po[9,6]", "po[9,7]",
+                            "po[9,8]", "po[9,9]", "po[9,10]", "po[9,11]", "po[9,12]", "po[9,13]", "po[9,14]",
+                            "po[9,15]", "po[9,16]", "po[9,17]", "po[9,18]", "po[9,19]"
+                            
+                            
+                            ),
+          Rhat = TRUE,
+          ISB = FALSE,
+          ind = TRUE, pdf = FALSE)
+
+```
+
+
+
+## Hyperparametres non-infomratif
+
+### Mean and SD
+
+```{r}
+MCMCtrace(out_2, params = c("mean_p_LR","mean_p_MA","mean_p_VE","mean_p_V5",
+                            "sigma_p_LR", "sigma_p_MA", "sigma_p_VE", "sigma_p_V5"
+                            ),
+          Rhat = TRUE,
+          ISB = FALSE,
+          ind = TRUE, pdf = FALSE)
+
+```
+
+
+### Convergence des p
+
+
+```{r}
+MCMCtrace(out_2, params = c("po[6,1]", "po[6,2]", "po[6,3]", "po[6,4]", "po[6,5]", "po[6,6]", "po[6,7]",
+                            "po[6,8]", "po[6,9]", "po[6,10]", "po[6,11]", "po[6,12]", "po[6,13]", "po[6,14]",
+                            "po[6,15]", "po[6,16]", "po[6,17]", "po[6,18]", "po[6,19]",
+                            
+                            "po[7,1]", "po[7,2]", "po[7,3]", "po[7,4]", "po[7,5]", "po[7,6]", "po[7,7]",
+                            "po[7,8]", "po[7,9]", "po[7,10]", "po[7,11]", "po[7,12]", "po[7,13]", "po[7,14]",
+                            "po[7,15]", "po[7,16]", "po[7,17]", "po[7,18]", "po[7,19]",
+                            
+                            "po[8,1]", "po[8,2]", "po[8,3]", "po[8,4]", "po[8,5]", "po[8,6]", "po[8,7]",
+                            "po[8,8]", "po[8,9]", "po[8,10]", "po[8,11]", "po[8,12]", "po[8,13]", "po[8,14]",
+                            "po[8,15]", "po[8,16]", "po[8,17]", "po[8,18]", "po[8,19]",
+                            
+                            "po[9,1]", "po[9,2]", "po[9,3]", "po[9,4]", "po[9,5]", "po[9,6]", "po[9,7]",
+                            "po[9,8]", "po[9,9]", "po[9,10]", "po[9,11]", "po[9,12]", "po[9,13]", "po[9,14]",
+                            "po[9,15]", "po[9,16]", "po[9,17]", "po[9,18]", "po[9,19]"
+                            
+                            
+                            ),
+          Rhat = TRUE,
+          ISB = FALSE,
+          ind = TRUE, pdf = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+

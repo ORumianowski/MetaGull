@@ -1,0 +1,137 @@
+---
+title: "Model v10_4 - simulation"
+author: "Odin Rumianowski"
+date: "2024-03-22"
+output: html_document
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(MCMCvis)
+library(knitr)
+library(patchwork)
+```
+
+
+The results of the v10_4 model analysis of real dataset with the following computational parameters:
+
+ni <- 50000; nb <- 15000; nc <- 3; nt <- 70; na <- 4000
+
+## En résumé
+
+Modifications à faire pour les prochains modèles :
+
+- fixer la probabilité de recapture à 0 les colonies/années sans pression d'observation (en cours sur le cluster)
+- faire avec les données de survey (avec le modèle intégré) (en cours sur le cluster)
+
+
+
+
+```{r}
+#load(file = "out1_integrated_v10_4.Rda")
+load(file = "out1_integrated_v10_4_cmr_real_co.Rda")
+```
+
+### Apparent survival probability
+
+D'après Péron:
+
+phi1 = 0.213 - First year
+
+phiA = 0.860 - Subadult and adult
+
+```{r}
+
+MCMCtrace(out1, params = c("phi"),
+          Rhat = TRUE,
+          ind = TRUE, pdf = FALSE)
+```
+
+### Productivity
+
+D'après Péron:
+
+rhoLR = 1.732 - La Ronze
+
+rhoSAT = 0.605 - Satellite colonies
+
+! Je n'ai pas encore appliqué le modèle en version intégré ! (en cours sur le cluster)
+
+### Recruitment probability
+D'après Péron: 
+
+kappaLR = 0.619 - La Ronze
+
+kappaSAT = 0.846 - Satellite colonies
+
+```{r}
+MCMCtrace(out1, params = c("kappa"),
+          Rhat = TRUE,
+          ind = TRUE, pdf = FALSE)
+```
+
+### Natal dispersion "eta" from one colony to another - colony dependence 
+
+```{r}
+kable(out1$mean$eta_monitored, align = "c")
+```
+
+### Breeding dispersion "nu" from one colony to another - colony dependence
+ 
+```{r}
+kable(out1$mean$nu_monitored, align = "c")
+```
+
+
+
+
+### Traces of eta and nu
+
+```{r} 
+
+MCMCtrace(out1, params = c("eta_monitored"),
+
+          Rhat = TRUE,
+          ind = TRUE, pdf = FALSE)
+
+
+MCMCtrace(out1, params = c("nu_monitored"),
+
+          Rhat = TRUE,
+          ind = TRUE, pdf = FALSE)
+```
+
+# Recapture probability
+           
+In the analysis:
+
+```{r}
+p1 = out1$mean$po[6,] %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram() +
+  labs(title = "La Ronze")
+
+
+p2 = out1$mean$po[7:9,] %>% 
+  as.vector() %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram()+
+  labs(title = "Les satellites")
+
+p3 = p1 + p2
+
+p3
+
+```
+
+

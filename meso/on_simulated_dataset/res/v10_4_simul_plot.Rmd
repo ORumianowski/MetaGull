@@ -1,0 +1,319 @@
+---
+title: "Model v10_4 - simulation"
+author: "Odin Rumianowski"
+date: "2024-03-22"
+output :
+  html_document :
+    toc : yes
+    toc_float : yes
+    warning : no
+    message : no
+    number_sections : yes
+    code_fold : hide
+    style : simplex
+    theme: cosmo
+    highlight: pygment
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE)
+```
+
+
+```{r}
+library(kableExtra)
+library(tidyverse)
+library(ggplot2)
+library(MCMCvis)
+library(knitr)
+library(patchwork)
+```
+
+
+```{r}
+source("model_parameters_v6.R")
+load(file = "B.Rda")
+load(file = "N.Rda")
+```
+
+# En résumé
+
+ecart des productivités sous estime :
+
+pistes:
+
+1 identifiabilité de eta[5,] ?
+
+# Computational parameters
+
+ni <- 65000; nb <- 15000; nc <- 3; nt <- 70; na <- 4000
+
+```{r}
+#load(file = "out1_integrated_v10_4.Rda")
+load(file = "out1_integrated_v10_4_long.Rda")
+```
+
+
+# Main parameters
+## Apparent survival probability
+The values used in the simulations are represented by the dotted red line and are : 
+
+phi1 = 0.213 - First year
+
+phiA = 0.78 - Subadult and adult
+
+The analysis : 
+
+
+```{r}
+out1$mean$phi
+
+```
+
+```{r}
+PR_unif_01 <- runif(1E9, 0, 1)
+```
+
+
+```{r}
+GV = c(phi1, phiA)
+
+
+MCMCtrace(out1, params = c("phi"),
+          Rhat = T,
+          priors = PR_unif_01,
+          gvals = GV,
+          ind = T, pdf = F,
+          post_zm = F)
+```
+
+## Productivity
+The values used in the simulations are represented by the dotted red line and are : 
+
+rhoLR = 1.732 - La Ronze
+
+rhoSAT = 0.605 - Satellite colonies
+
+The analysis : 
+
+
+```{r}
+out1$mean$rho
+
+```
+
+```{r}
+GV = c(rhoLR, rhoSAT)
+
+PR <- runif(1E8, 0.1, 3)
+
+
+MCMCtrace(out1, params = c("rho"),
+          Rhat = T,
+          priors = PR ,
+          gvals = GV,
+          ind = T, pdf = F,
+          post_zm = F)
+```
+
+## Recruitment probability
+The values used in the simulations are represented by the dotted red line and are : 
+
+kappaLR = 0.619 - La Ronze
+
+kappaSAT = 0.846 - Satellite colonies
+
+The analysis : 
+
+
+```{r}
+out1$mean$kappa
+
+```
+
+```{r}
+GV = c(kappaLR, kappaSAT)
+
+
+MCMCtrace(out1, params = c("kappa"),
+          Rhat = T,
+          priors = PR_unif_01,
+          gvals = GV,
+          ind = T, pdf = F,
+          post_zm = F)
+```
+
+
+# Dispersion
+
+## Natal dispersion "eta"
+
+ In the dataset
+ 
+```{r}
+eta %>% 
+  round(.,2)%>%
+  kbl() %>%
+  kable_paper(full_width = F)
+```
+ In the analysis
+ 
+```{r}
+#kable(out1$mean$eta_monitored, align = "c")
+
+
+out1$mean$eta_monitored %>% 
+  round(.,2)%>%
+  kbl() %>%
+  kable_paper(full_width = F) %>%
+  row_spec(5, color = "white",
+              background = "red")
+```
+
+
+## Breeding dispersion "nu"
+
+ In the dataset
+ 
+```{r}
+#kable(nu, align = "c")
+
+nu%>% 
+  round(.,2)%>%
+  kbl() %>%
+  kable_paper(full_width = F) 
+```
+ 
+ In the analysis
+ 
+```{r}
+out1$mean$nu_monitored %>% 
+  round(.,2)%>%
+  kbl() %>%
+  kable_paper(full_width = F) 
+```
+
+
+### Traces of eta and nu
+
+```{r} 
+GV = eta %>% as.vector()
+
+MCMCtrace(out1, params = c("eta_monitored"),
+          gvals = GV,
+          Rhat = TRUE,
+          priors = PR_unif_01,
+          ind = TRUE, pdf = FALSE,
+          post_zm = F)
+
+GV = nu %>% as.vector()
+
+MCMCtrace(out1, params = c("nu_monitored"),
+          gvals = GV,
+          Rhat = TRUE,
+          priors = PR_unif_01,
+          ind = TRUE, pdf = FALSE,
+          post_zm = F)
+```
+
+# Recapture probability
+
+In the simulation :
+
+  - time and colony dependence 
+  
+p = matrix(runif(n = n.years*n.colony , min = 0.2, max = 0.4),
+           nrow = n.years, ncol = n.colony)
+           
+In the analysis:
+
+```{r}
+p1 = out1$mean$po[6,] %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram() +
+  labs(title = "La Ronze")
+
+
+p2 = out1$mean$po[7:9,] %>% 
+  as.vector() %>% 
+  as.data.frame() %>%
+  mutate(., val = .) %>% 
+  ggplot(., aes(x =val)) +
+  geom_histogram()+
+  labs(title = "Les satellites")
+
+p3 = p1 + p2
+
+p3
+
+```
+
+
+# Numbers of Breeders/Prebreeders
+
+```{r}
+df <- data.frame(
+  Temps = rep(seq_len(ncol(B)), each = nrow(B)),
+  Population = rep(c("pop1", "pop2", "pop3", "pop4", "pop5"), ti = ncol(B)),
+  Valeur = as.vector(B))
+
+p1 = ggplot(df, aes(x = Temps, y = Valeur, color = Population)) +
+  geom_line() +
+  labs(title = "Breeders - données simulées",
+       x = "Temps",
+       y = "Nombre d'individus") +
+  theme(legend.position = "none")
+
+
+df <- data.frame(
+  Temps = rep(seq_len(ncol(N)), each = nrow(N)),
+  Population = rep(c("pop1", "pop2", "pop3", "pop4", "pop5"), ti = ncol(N)),
+  Valeur = as.vector(N))
+
+p2 = ggplot(df, aes(x = Temps, y = Valeur, color = Population)) +
+  geom_line() +
+  labs(title = " Prebreeders - données simulées",
+       x = "Temps",
+       y = "Nombre d'individus") +
+  theme_minimal()+
+  theme(legend.position = "none")
+
+data_ = t(out1[["mean"]][["B"]])
+
+df <- data.frame(
+  Temps = rep(seq_len(nrow(data_)), time = ncol(data_)),
+  Population = rep(c("pop1", "pop2", "pop3", "pop4", "pop5"), each = nrow(data_)),
+  Valeur = as.vector(data_))
+
+p3 = ggplot(df, aes(x = Temps, y = Valeur, color = Population)) +
+  geom_line() +
+  labs(title = "Breeders - d'après l'analyse",
+       x = "Temps",
+       y = "Nombre d'individus")
+
+data_ = t(out1[["mean"]][["N"]])
+
+df <- data.frame(
+  Temps = rep(seq_len(nrow(data_)), time = ncol(data_)),
+  Population = rep(c("pop1", "pop2", "pop3", "pop4", "pop5"), each = nrow(data_)),
+  Valeur = as.vector(data_))
+
+p4 = ggplot(df, aes(x = Temps, y = Valeur, color = Population)) +
+  geom_line() +
+  labs(title = "Prebreeders - d'après l'analyse",
+       x = "Temps",
+       y = "Nombre d'individus") +
+  theme_minimal()
+
+p5 = p1 + p3 
+
+p6 = p2 + p4
+
+p5
+p6
+```
+
+
+
