@@ -29,12 +29,6 @@ for (t in 1:(n.years-1)) {
 }
 
 
-# Ajout de NA
-B[4,5] = NA
-B[3,6] = NA
-B[4,6] = NA
-
-
 library(ggplot2)
 
 df <- data.frame(

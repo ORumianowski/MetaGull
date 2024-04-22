@@ -34,12 +34,12 @@ n.state = 3 * n.colony + 1
 
 # Apparent survival probability - age class dependence
 phi1 = 0.213 # First year
-phiA = 0.78 # Subadult and adult
+phiA = 0.86 # Subadult and adult
 phi = c(phi1, phiA)
 
 # Productivity
-rhoLR = 1.732 # La Ronze
-rhoSAT = 0.605 # Satellite colonies
+rhoLR = 1.732/2 # La Ronze
+rhoSAT = 0.605/2 # Satellite colonies
 rho = c(rhoLR, rhoSAT)
 
 # Recruitment probability
@@ -53,29 +53,23 @@ col2colclass = c(1, rep(2, (n.colony-1)))
 # Natal dispersion from one colony to another - colony dependence
 # Quite random & few natal dispersion toward La Ronze
 eta = matrix(c(
-  0.3, 0.05, 0.2, 0.05, 0.4,
-  0.2, 0.2, 0.5, 0.05, 0.05,
-  0.1, 0.1, 0.3, 0.2, 0.3,
-  0.1, 0.1, 0.1, 0.3, 0.4,
-  NA, NA, NA, NA, NA), 
+  0.4, 0.3, 0.2, 0.0, 0.1,
+  0.0, 0.5, 0.2, 0.2, 0.1,
+  0.0, 0.2, 0.7, 0.0, 0.1,
+  0.0, 0.1, 0.1, 0.8, 0.0,
+  0.0, 0.3, 0.2, 0.2, 0.3), 
   nrow = n.colony, ncol = n.colony, byrow = T)
-
-eta[5, 1] <- (eta[2, 1] + eta[3, 1] + eta[4, 1])/3 
-eta[5, 2] <- (eta[1, 2] + eta[3, 2] + eta[4, 2])/3  
-eta[5, 3] <- (eta[1, 3] + eta[2, 3] + eta[4, 3])/3 
-eta[5, 4] <- (eta[1, 4] + eta[2, 4] + eta[3, 4])/3 
-eta[5, 5] <- 1-eta[5, 1]-eta[5, 2]-eta[5, 3]-eta[5, 4]
 
 # rowSums(eta)
 
 # Breeding dispersion from one colony to another - colony dependence
-# Great fidelity and attractiveness ofLa Ronze 
+# Great fidelity and attractiveness of La Ronze 
 nu = matrix(c(
-  0.8, 0.05, 0.1, 0.05, 0.0,
-  0.0, 0.4, 0.1, 0.2, 0.3,
-  0.4, 0.0, 0.5, 0.0, 0.1,
-  0.1, 0.3, 0.3, 0.2, 0.1,
-  0.4, 0.2, 0.2, 0.0, 0.2), 
+  1, 0.0, 0.0, 0.0, 0.0,
+  0.10, 0.60, 0.10, 0, 0.2,
+  0.2, 0.3, 0.5, 0.0, 0.0,
+  0.1, 0.2, 0.2, 0.4, 0.1,
+  0.015, 0.015, 0.015, 0.015, 0.94), 
   nrow = n.colony, ncol = n.colony, byrow = T)
 
 # rowSums(nu)
@@ -92,7 +86,7 @@ NU_t = list()
 
 for (t in 1:(n.years-1)) {
   
-  extinted_col = sample(c(2:n.colony), size = rpois(1, 0.4))
+  extinted_col = sample(c(4), size = rpois(1, 0.1))
   
   # The disappearance of a colony is modelled only via the dispersion matrices eta and nu
   # If a colony disappear,
@@ -121,7 +115,7 @@ A <- matrix(c(
 z <- which.max(Re(eigen(A)$values))
 revec <- Re(eigen(A)$vectors[,z])
 m1 = matrix(revec / sum(revec)) 
-# 0.34 0.66
+# 0.20 0.80
 
 
 #Satellite
@@ -131,13 +125,13 @@ A <- matrix(c(
 z <- which.max(Re(eigen(A)$values))
 revec <- Re(eigen(A)$vectors[,z])
 m2 = matrix(revec / sum(revec))
-#  0.14 0.86
+#  0.08 0.92
 
 
 
 # Number of Breeders and Prebreeders at year 1 ----------------------------
 
-B1 = c(2500, 400, 1500, 300, 1100)
-repro_ratio = c(0.34/0.66, rep(0.14/0.86,n.colony-1))  
+B1 = c(3800, 1000, 500, 10, 3600)
+repro_ratio = c(0.20/(1-0.20), rep(0.08/(1-0.08),n.colony-1))  
 N1 = round(repro_ratio * B1)
 

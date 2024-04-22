@@ -1,6 +1,6 @@
 
 
-source("simulation/model_parameters_v6.R")
+source("simulation/model_parameters_v9.R")
 
 # Simulate CMR dataset ----------------------------------------------------
 
@@ -154,18 +154,10 @@ for (i in 1:nind){
   } #t
 } #i
 
+# recodification of the dead state
 y[y==16] <- 0
-#marr <- marray(y, unobs=5)
-# 
-library(tidyverse)
-# créer le site fantome
-# retirer les individus bagués sur le site 5
 
-y <- y %>%
-  as.data.frame() %>%
-  filter(!(if_any(everything(), ~. == 5))) %>%
-  as.matrix()
-
-# retirer les contacts réalisés sur le site 5
+# create the ghost site
+# remove contacts of breeders in AE
 y[y==10] <- 0
-y[y==15] <- 0
+

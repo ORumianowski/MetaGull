@@ -9,8 +9,10 @@ library(tidyverse)
 library(IPMbook)
 
 #path_dataset_gull = "/lustre/rumianowskio/dataset_110324/histoire_capture_kg.csv"
-path_dataset_gull = "C:/Users/33763/Documents/CMRi/0_Github/Z_0_Dataset/dataset_28032024/histoire_capture.csv"
-
+path_dataset_gull = "C:/Users/33763/Documents/CMRi/0_Github/Z_0_Dataset/dataset_28032024/histoire_capture2.csv"
+# path_dataset_gull = "C:/Users/33763/Documents/CMRi/0_Github/Z_0_Dataset/dataset_11032024/histoire_capture_kg.csv"
+# 
+# dgull <- read_excel("C:/Users/33763/Documents/CMRi/0_Github/Z_0_Dataset/dataset_29032024/Affut.xlsx")
 
 dgull = read.csv(path_dataset_gull)
 
@@ -32,9 +34,9 @@ summary(dgull)
 
 dgull[dgull$age=="NULL", "age"] <- "A"
 
-# dgull = dgull %>% 
-#   # !!!
-#   subset(.,id_site_principal %in% c("LR_E", "MA_E", "PC_E", "V5_E")) 
+dgull = dgull %>%
+  # !!!
+  subset(.,id_site_principal %in% c("LR_E", "MA_E", "PC_E", "V5_E") | age == "P")
 
 
 dgull = dgull %>% 
@@ -45,8 +47,14 @@ dgull_all = dgull
 dgull_all_2 = dgull %>% 
   subset(., type_controle_simple == "B")
 
+dgull_all$id_individu %>% 
+  unique() %>% 
+  length()
+
 # !!!
 dgull = subset(dgull, source != "filet")
+
+subset(dgull, source != "filet")
 
 # Filtering for adult and LaRonze -----------------------------------------
 # Pour le CJS simple sur LaRonze
@@ -131,23 +139,6 @@ dgull_final <- dgull_final %>%
 CH = matrix(NA, nrow = nb_ind, ncol = nb_year) 
 
 
-for (i in 1:nb_ind){
-  
-  data_i = subset(dgull_final, id_individu == ind_list[i] )
-  year_ind_list =  unique(data_i$num_annee)
-  
-  for(j in 1:nb_year){
-    
-    # If detected
-    if (j %in% year_ind_list){
-      CH[i,j] = 1 
-    }
-    # If not detected
-    else{
-      CH[i,j] = 0
-    }
-  }
-}
 
 nrow(CH)
 
